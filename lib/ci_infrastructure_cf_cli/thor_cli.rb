@@ -4,7 +4,7 @@ require "bosh-deployer"
 module CiInfrastructureCfCli
   class ThorCli < Thor
 
-    desc "generate_stub <NAME>", "Interactively generates a bosh or cloudfoundry that lets you generate a full deployment manifest with spiff"
+    desc "generate_stub <NAME>", "Interactively generates a bosh or cloudfoundry stub. This stub can be use with spiff."
     def generate_stub(name)
       cmd = Bosh::Deployer::Cli::Commands::GenerateStub.new(
         name, default_path )
@@ -21,7 +21,7 @@ module CiInfrastructureCfCli
       end
     end
 
-    desc "provision", "Provision ci_infrastructure_cf jenkins machine"
+    desc "provision", "Provisions ci_infrastructure_cf jenkins machine"
     def provision
       spawn_and_wait("vagrant provision")
     end
