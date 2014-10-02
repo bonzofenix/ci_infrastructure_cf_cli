@@ -31,7 +31,7 @@ module CiInfrastructureCfCli
 
     no_commands do
       def default_path
-        File.expand_path( "#{`pwd`}/cookbooks/ci_infrastructure_cf/files/default/stubs", __FILE__)
+        File.expand_path( "#{`pwd`.strip}/cookbooks/ci_infrastructure_cf/files/default/stubs", __FILE__)
       end
 
       def spawn_and_wait(cmd)

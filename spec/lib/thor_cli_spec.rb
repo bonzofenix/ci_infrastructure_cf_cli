@@ -18,7 +18,7 @@ describe CiInfrastructureCfCli::ThorCli do
   describe 'edit_stub' do
     before{ allow(File).to receive(:exist?).and_return(true) }
     let(:default_path) do
-      File.expand_path( "#{`pwd`}/cookbooks/ci_infrastructure_cf/files/default/stubs", __FILE__)
+      File.expand_path( "#{`pwd`.strip}/cookbooks/ci_infrastructure_cf/files/default/stubs", __FILE__)
     end
     %w{ bosh cf }.each do |stub|
 
