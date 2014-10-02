@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+$:.push File.dirname(__FILE__) + '/../lib'
+
+require "rubygems"
+
+require "ci_infrastructure_cf_cli"
+require "ci_infrastructure_cf_cli/thor_cli"
+
+CiInfrastructureCfCli::ThorCli.start
