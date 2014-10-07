@@ -1,6 +1,6 @@
 require_relative '../../lib/ci_infrastructure_cf_cli/thor_cli'
+require_relative '../../lib/ci_infrastructure_cf_cli/commands/init'
 require 'bosh-deployer'
-#require 'bosh-deployer/cli/commands/generate_stub'
 
 describe CiInfrastructureCfCli::ThorCli do
   let(:cli){ described_class.new }
@@ -12,6 +12,16 @@ describe CiInfrastructureCfCli::ThorCli do
       expect(Bosh::Deployer::Cli::Commands::GenerateStub)
         .to receive(:new).with('bosh',anything).and_return(cmd)
       cli.generate_stub('bosh')
+    end
+  end
+
+  describe 'generate_stub' do
+    let(:cmd){ double.as_null_object }
+
+    it 'should called generate stub with the correct commands' do
+      expect(CiInfrastructureCfCli::Commands::Init)
+        .to receive(:new).with('dev').and_return(cmd)
+      cli.init('dev')
     end
   end
 
@@ -37,7 +47,14 @@ describe CiInfrastructureCfCli::ThorCli do
       cli.provision
     end
   end
+  
+  describe 'edit_jobs' do
+    before{ allow(File).to receive(:exist?).and_return(true) }
 
-  describe 'deploy_jenkins'
-  describe 'deploy_microbosh'
+    it "opens editor with jobs.yml" do
+      expect(cli).to receive('spawn_and_wait')
+        .with("vim jobs.yml")
+      cli.edit_jobs
+    end
+  end
 end

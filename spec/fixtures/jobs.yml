@@ -1,0 +1,13 @@
+microbosh: 
+  provider:
+    name: 'openstack'
+    user: <%= ENV['OS_USERNAME'] %>
+    pass: <%= ENV['OS_PASSWORD'] %>
+    tenant: <%= ENV['OS_TENANT_NAME'] %>
+    auth_url: <%= ENV['OS_AUTH_URL'].strip %>/tokens
+  address:
+    ip: <%= ENV['MICROBOSH_IP'] %>
+    subnet_id: <%= ENV['MICROBOSH_SUBNET_ID'] %>
+rabbitmq:
+  build_cmd:  | 
+    echo 'hello'

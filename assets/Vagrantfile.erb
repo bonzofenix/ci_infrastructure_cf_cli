@@ -1,0 +1,82 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+require 'rubygems'
+require 'yaml'
+require 'erb'
+
+ENV['OS_USERNAME'] ||= '<%= openstack_username %>'
+ENV['OS_PASSWORD'] ||= '<%= openstack_api_key %>'
+ENV['OS_FLAVOR'] ||= '<%= jenkins_flavor %>'
+ENV['OS_AUTH_URL'] ||= '<%= openstack_auth_url %>'
+ENV['OS_KEYPAIR_NAME'] ||= '<%= openstack_keypair_name %>'
+ENV['OS_NETWORK'] ||= '<%= subnet_id %>'
+ENV['OS_TENANT_NAME'] ||= '<%= openstack_tenant %>'
+ENV['JENKINS_FLOATING_IP'] ||= '<%= jenkins_floating_ip %>'
+
+VAGRANTFILE_API_VERSION = "2"
+
+def load_yaml(filepath)
+  YAML.load(ERB.new(File.read(filepath)).result)
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.ssh.private_key_path = "vagrant.pem"
+
+  config.vm.box = "dummy"
+  config.vm.box_url = 'https://github.com/cloudbau/vagrant-openstack-plugin/raw/master/dummy.box'
+
+  config.berkshelf.enabled = true
+  config.berkshelf.berksfile_path = '../Berksfile'
+  config.omnibus.chef_version = :latest
+
+  config.vm.provider :openstack do |os|
+    os.server_name = "Jenkins CI Infrastructure For CF"
+    os.username     =ENV['OS_USERNAME']
+    os.api_key      =ENV['OS_PASSWORD']
+    os.flavor       =ENV['OS_FLAVOR']
+    os.image        =ENV['OS_IMAGE']
+    os.endpoint     = "#{ENV['OS_AUTH_URL'].strip}/tokens"
+    os.keypair_name = ENV['OS_KEYPAIR_NAME']
+    os.ssh_username = "ubuntu"           # login for the VM
+
+    # os.metadata  = {"key" => "value"}                      # optional
+    # os.user_data = "#cloud-config\nmanage_etc_hosts: True" # optional
+    # os.network            = "internal"            # optional
+    os.networks           = [ "#{ENV['OS_NETWORK']}" ]     # optional, overrides os.network
+    # os.address_id         = "YOUR ADDRESS ID"# optional (`network` above has higher precedence)
+    # os.scheduler_hints    = {
+    # :cell => 'australia'
+    # }                                          # optional
+    # os.availability_zone  = "az0001"           # optional
+    os.security_groups    = [ 'ssh', 'jenkins' ]    # optional
+    os.tenant             = ENV['OS_TENANT_NAME']
+    os.floating_ip        = ENV['JENKINS_FLOATING_IP']
+  end
+
+  $script = <<SCRIPT
+  sudo apt-get update
+  sudo apt-get -y install build-essential 
+SCRIPT
+
+  config.vm.provision "shell", inline: $script
+  config.vm.provision :chef_solo do |chef|
+    chef.json = { 
+      jenkins: {
+        recursor: '10.241.1.156',
+        master: {
+          install_method: 'package'
+        }
+      },
+      ci_infrastructure_cf: {
+        jobs: load_yaml('jobs.yml')
+      }
+    }
+
+    chef.run_list = [
+      'jenkins::master',
+      'ci_infrastructure_cf'
+    ]
+  end
+end
